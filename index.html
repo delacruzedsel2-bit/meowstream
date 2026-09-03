@@ -3,95 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VidUp Configuration</title>
+    <title>VidUpPlay - Stremio Addon Configurator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f1115; color: #ffffff; font-family: sans-serif; }
-        .glass-card { background: #191b21; border: 1px solid #2a2d36; border-radius: 12px; }
+        body { background-color: #0d0f12; color: #e5e7eb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .card { background: #161920; border: 1px solid #232734; border-radius: 14px; }
+        .input-box { background: #0d0f12; border: 1px solid #2d3345; color: #fff; }
+        .input-box:focus { border-color: #3b82f6; outline: none; }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-md w-full glass-card p-8 shadow-2xl">
-        <div class="mb-6 border-b border-gray-700 pb-4">
-            <h1 class="text-2xl font-bold tracking-tight">VidUpPlay Config</h1>
-            <p class="text-sm text-gray-400 mt-1">Configure your stream templates and formatting.</p>
+    <div class="max-w-lg w-full card p-6 shadow-2xl space-y-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                    VidUp<span class="text-blue-500">Play</span>
+                </h1>
+                <p class="text-xs text-gray-400 mt-0.5">Stream formatters, templates & settings</p>
+            </div>
+            <span class="px-2.5 py-1 text-xs font-semibold bg-blue-950 text-blue-400 border border-blue-800 rounded-full">v2.1.0</span>
         </div>
 
-        <div class="space-y-6">
-            <!-- Custom Name Setter -->
+        <!-- Formatting Presets (Like Pengu) -->
+        <div>
+            <label class="text-xs uppercase font-bold text-gray-400 tracking-wider">Format Presets</label>
+            <div class="grid grid-cols-3 gap-2 mt-2">
+                <button onclick="applyPreset('default')" class="py-1.5 px-3 text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-white">Default</button>
+                <button onclick="applyPreset('prism')" class="py-1.5 px-3 text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-white">Prism</button>
+                <button onclick="applyPreset('minimal')" class="py-1.5 px-3 text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-white">Minimal</button>
+            </div>
+        </div>
+
+        <!-- Custom Formatter Inputs -->
+        <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Custom Addon Name</label>
-                <input type="text" id="addonName" value="VidUpPlay" class="w-full bg-[#0f1115] border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                <label class="block text-xs font-medium text-gray-300 mb-1">Name Template</label>
+                <input type="text" id="nameTemplate" value="VidUpPlay" class="w-full input-box rounded-lg px-3 py-2 text-sm">
             </div>
 
-            <!-- Emojis Toggle -->
-            <div class="flex items-center justify-between">
+            <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">Description Template</label>
+                <input type="text" id="descTemplate" value="{stream.resolution} • HLS • PeakStorm" class="w-full input-box rounded-lg px-3 py-2 text-sm">
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
                 <div>
-                    <h3 class="text-sm font-medium text-gray-300">Use Emoji Templates</h3>
-                    <p class="text-xs text-gray-500">Adds ❄️ 4K and 🧊 1080p to stream titles.</p>
+                    <h4 class="text-sm font-medium text-gray-200">Emoji Badges</h4>
+                    <p class="text-xs text-gray-400">Include ❄️ 4K and 🧊 1080p badges</p>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" id="useEmojis" class="sr-only peer" checked>
-                  <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
+                <input type="checkbox" id="emojiToggle" checked class="w-4 h-4 accent-blue-600 rounded">
             </div>
+        </div>
 
-            <!-- Live Stream Preview -->
-            <div class="bg-[#0f1115] rounded-lg p-4 border border-gray-700">
-                <h4 class="text-xs text-gray-500 uppercase font-semibold mb-2">Stremio Preview</h4>
-                <div class="flex items-center gap-2 text-sm font-medium text-gray-200" id="previewText">
-                    ❄️ 4K | VidUpPlay
+        <!-- Dynamic Stremio Stream Preview -->
+        <div>
+            <label class="text-xs uppercase font-bold text-gray-400 tracking-wider">Live Stremio Preview</label>
+            <div class="mt-2 bg-[#0d0f12] border border-gray-800 rounded-lg p-3 flex items-start gap-3">
+                <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5">▶</div>
+                <div class="space-y-0.5">
+                    <div id="previewName" class="text-sm font-semibold text-white">🧊 1080p | VidUpPlay</div>
+                    <div id="previewDesc" class="text-xs text-gray-400">1080p • HLS • PeakStorm</div>
                 </div>
             </div>
+        </div>
 
-            <!-- Action Buttons -->
-            <div class="space-y-3 pt-4">
-                <button onclick="installAddon()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
-                    Install to Stremio
-                </button>
-                <button onclick="copyUrl()" class="w-full bg-[#191b21] hover:bg-gray-800 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 border border-gray-600">
-                    Copy Addon URL
-                </button>
-            </div>
+        <!-- Installation Actions -->
+        <div class="space-y-2.5 pt-2">
+            <button onclick="installAddon()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+                Install to Stremio
+            </button>
+            <button onclick="copyUrl()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold py-2.5 rounded-lg text-sm border border-gray-700 transition">
+                Copy Addon Link
+            </button>
         </div>
     </div>
 
     <script>
-        // CRITICAL: Put your specific Render.com URL here WITHOUT 'https://'
-        const SERVER_URL = "vidup-backend.onrender.com";
+        // Set this to your live Render backend URL (no https://)
+        const BACKEND_DOMAIN = "vidup-backend.onrender.com";
 
-        const nameInput = document.getElementById('addonName');
-        const emojiToggle = document.getElementById('useEmojis');
-        const previewText = document.getElementById('previewText');
+        const nameInput = document.getElementById('nameTemplate');
+        const descInput = document.getElementById('descTemplate');
+        const emojiToggle = document.getElementById('emojiToggle');
+        const previewName = document.getElementById('previewName');
+        const previewDesc = document.getElementById('previewDesc');
 
-        // Dynamic Real-time UI updating
         function updatePreview() {
             const name = nameInput.value || "VidUpPlay";
+            const desc = descInput.value || "{stream.resolution} • HLS";
             const emojis = emojiToggle.checked;
-            previewText.innerHTML = emojis ? `❄️ 4K | ${name}` : `4K | ${name}`;
+
+            previewName.innerText = emojis ? `🧊 1080p | ${name}` : `1080p | ${name}`;
+            previewDesc.innerText = desc.replace('{stream.resolution}', '1080p').replace('{addon.name}', name);
         }
 
         nameInput.addEventListener('input', updatePreview);
+        descInput.addEventListener('input', updatePreview);
         emojiToggle.addEventListener('change', updatePreview);
 
-        // Generates the customized install link
-        function generateConfigUrl() {
-            const config = {
-                name: nameInput.value || "VidUpPlay",
+        function applyPreset(type) {
+            if (type === 'default') {
+                nameInput.value = "VidUpPlay";
+                descInput.value = "{stream.resolution} • HLS • PeakStorm";
+                emojiToggle.checked = true;
+            } else if (type === 'prism') {
+                nameInput.value = "Prism • VidUp";
+                descInput.value = "🎬 {stream.resolution} | Direct Stream";
+                emojiToggle.checked = false;
+            } else if (type === 'minimal') {
+                nameInput.value = "VidUp";
+                descInput.value = "{stream.resolution}";
+                emojiToggle.checked = false;
+            }
+            updatePreview();
+        }
+
+        function buildConfiguredUrl() {
+            const configObj = {
+                nameTemplate: nameInput.value || "VidUpPlay",
+                descTemplate: descInput.value || "{stream.resolution} • HLS",
                 emojis: emojiToggle.checked
             };
-            const b64Config = btoa(JSON.stringify(config)); // Base64 encodes the JSON config
-            return `https://${SERVER_URL}/${b64Config}/manifest.json`;
+            const b64 = btoa(JSON.stringify(configObj));
+            return `https://${BACKEND_DOMAIN}/${b64}/manifest.json`;
         }
 
         function installAddon() {
-            window.location.href = generateConfigUrl().replace('https://', 'stremio://');
+            const link = buildConfiguredUrl().replace('https://', 'stremio://');
+            window.location.href = link;
         }
 
         function copyUrl() {
-            navigator.clipboard.writeText(generateConfigUrl()).then(() => {
-                alert("Custom Addon URL Copied! Paste it into the Stremio Addon Search Bar.");
+            navigator.clipboard.writeText(buildConfiguredUrl()).then(() => {
+                alert("Addon Manifest URL copied! Paste into Stremio's addon search bar.");
             });
         }
     </script>
