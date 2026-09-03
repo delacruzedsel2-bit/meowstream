@@ -3,49 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VidUp Addon for Stremio</title>
+    <title>VidUp Configuration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f1115; color: #ffffff; }
-        .glass-card { background: rgba(25, 27, 33, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; }
+        body { background-color: #0f1115; color: #ffffff; font-family: sans-serif; }
+        .glass-card { background: #191b21; border: 1px solid #2a2d36; border-radius: 12px; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
     <div class="max-w-md w-full glass-card p-8 shadow-2xl">
-        <div class="flex items-center justify-center mb-6">
-            <h1 class="text-3xl font-bold tracking-tight">VidUp<span class="text-blue-500">Play</span></h1>
+        <div class="mb-6 border-b border-gray-700 pb-4">
+            <h1 class="text-2xl font-bold tracking-tight">VidUpPlay Config</h1>
+            <p class="text-sm text-gray-400 mt-1">Configure your stream templates and formatting.</p>
         </div>
-        
-        <p class="text-gray-400 text-center mb-8">Install the VidUp scraper directly into Stremio to watch your favorite movies and series.</p>
 
-        <div class="space-y-4">
-            <!-- Replace this URL with your actual Cloudflare Worker URL -->
-            <button onclick="installAddon()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"></path></svg>
-                Install to Stremio
-            </button>
+        <div class="space-y-6">
+            <!-- Custom Name Setter -->
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Custom Addon Name</label>
+                <input type="text" id="addonName" value="VidUpPlay" class="w-full bg-[#0f1115] border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+            </div>
 
-            <button onclick="copyUrl()" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 border border-gray-600">
-                Copy Addon URL
-            </button>
+            <!-- Emojis Toggle -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-300">Use Emoji Templates</h3>
+                    <p class="text-xs text-gray-500">Adds ❄️ 4K and 🧊 1080p to stream titles.</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="useEmojis" class="sr-only peer" checked>
+                  <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+
+            <!-- Live Stream Preview -->
+            <div class="bg-[#0f1115] rounded-lg p-4 border border-gray-700">
+                <h4 class="text-xs text-gray-500 uppercase font-semibold mb-2">Stremio Preview</h4>
+                <div class="flex items-center gap-2 text-sm font-medium text-gray-200" id="previewText">
+                    ❄️ 4K | VidUpPlay
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-3 pt-4">
+                <button onclick="installAddon()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
+                    Install to Stremio
+                </button>
+                <button onclick="copyUrl()" class="w-full bg-[#191b21] hover:bg-gray-800 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 border border-gray-600">
+                    Copy Addon URL
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        // REPLACE WITH YOUR CLOUDFLARE WORKER URL
-        const WORKER_URL = "https://vidup-backend.onrender.com"
-        
-        const manifestUrl = `https://${WORKER_URL}/manifest.json`;
-        const stremioUrl = `stremio://${WORKER_URL}/manifest.json`;
+        // CRITICAL: Put your specific Render.com URL here WITHOUT 'https://'
+        const SERVER_URL = "vidup-backend.onrender.com";
+
+        const nameInput = document.getElementById('addonName');
+        const emojiToggle = document.getElementById('useEmojis');
+        const previewText = document.getElementById('previewText');
+
+        // Dynamic Real-time UI updating
+        function updatePreview() {
+            const name = nameInput.value || "VidUpPlay";
+            const emojis = emojiToggle.checked;
+            previewText.innerHTML = emojis ? `❄️ 4K | ${name}` : `4K | ${name}`;
+        }
+
+        nameInput.addEventListener('input', updatePreview);
+        emojiToggle.addEventListener('change', updatePreview);
+
+        // Generates the customized install link
+        function generateConfigUrl() {
+            const config = {
+                name: nameInput.value || "VidUpPlay",
+                emojis: emojiToggle.checked
+            };
+            const b64Config = btoa(JSON.stringify(config)); // Base64 encodes the JSON config
+            return `https://${SERVER_URL}/${b64Config}/manifest.json`;
+        }
 
         function installAddon() {
-            window.location.href = stremioUrl;
+            window.location.href = generateConfigUrl().replace('https://', 'stremio://');
         }
 
         function copyUrl() {
-            navigator.clipboard.writeText(manifestUrl).then(() => {
-                alert("Addon URL copied to clipboard! Paste it in the Stremio Addon search bar.");
+            navigator.clipboard.writeText(generateConfigUrl()).then(() => {
+                alert("Custom Addon URL Copied! Paste it into the Stremio Addon Search Bar.");
             });
         }
     </script>
