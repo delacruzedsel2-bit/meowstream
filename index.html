@@ -126,7 +126,12 @@
                 descTemplate: descInput.value || "{stream.resolution} • HLS",
                 emojis: emojiToggle.checked
             };
-            const b64 = btoa(JSON.stringify(configObj));
+            
+            // Professional UTF-8 safe Base64 encoding (prevents Emojis from breaking the buttons)
+            const bytes = new TextEncoder().encode(JSON.stringify(configObj));
+            const binString = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join("");
+            const b64 = btoa(binString);
+            
             return `https://${BACKEND_DOMAIN}/${b64}/manifest.json`;
         }
 
@@ -138,6 +143,9 @@
         function copyUrl() {
             navigator.clipboard.writeText(buildConfiguredUrl()).then(() => {
                 alert("Addon Manifest URL copied! Paste into Stremio's addon search bar.");
+            }).catch(err => {
+                // Fallback for mobile browsers blocking clipboard access
+                prompt("Copy this URL and paste into Stremio:", buildConfiguredUrl());
             });
         }
     </script>
